@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const port = process.env.PORT || 5000;   //!Admin: disha@gmail.com / password: diasha11
+const port = process.env.PORT || 5000; //!Admin: disha@gmail.com / password: diasha11
 
 //? ----> middleware
 app.use(cors());
@@ -29,6 +29,9 @@ async function run() {
     const usersCollection = client
       .db("schoolProject")
       .collection("usersCollection");
+    const studentsMsgCollection = client
+      .db("schoolProject")
+      .collection("studentsMsgCollection");
 
     const verifyAdmin = async (req, res, next) => {
       const email = req.query.email;
@@ -87,6 +90,27 @@ async function run() {
         const admission = req.body;
         console.log(admission);
         const result = await admissionCollection.insertOne(admission);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.put("/admission/:id", verifyAdmin, async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            status: "approved",
+          },
+        };
+        const result = await admissionCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
         res.send(result);
       } catch (error) {
         res.send(error.message);
@@ -154,6 +178,33 @@ async function run() {
       } catch (error) {
         res.send(error.message);
       }
+    });
+
+    app.post("/message", async (req, res) => {
+      try {
+        const message = req.body;
+        const result = await studentsMsgCollection.insertOne(message);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.get("/message", verifyAdmin, async (req, res) => {
+      try {
+        const query = {};
+        const result = await studentsMsgCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.delete("/message/:id", verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await studentsMsgCollection.deleteOne(filter);
+      res.send(result);
     });
   } finally {
   }
