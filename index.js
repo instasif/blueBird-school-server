@@ -44,7 +44,7 @@ async function run() {
       .collection("routineCollection");
     const calenderCollection = client
       .db("schoolProject")
-      .collection("calenderCollection"); 
+      .collection("calenderCollection");
 
     const verifyAdmin = async (req, res, next) => {
       const email = req.query.email;
@@ -71,7 +71,7 @@ async function run() {
       try {
         const query = {
           start: { $gte: moment(req.query.start).toDate() },
-          end: { $lte: moment(req.query.end).toDate() }, 
+          end: { $lte: moment(req.query.end).toDate() },
         };
         const events = await calenderCollection.find(query);
         res.send(events);
@@ -83,6 +83,41 @@ async function run() {
     app.get("/routine", async (req, res) => {
       const routine = await routineCollection.find({}).toArray();
       res.send(routine);
+    });
+
+    app.get("/routine/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const result = await routineCollection.findOne(filter);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.post("/routine/:id", verifyAdmin, async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const data = req.body;
+        console.log(data);
+        const { routine } = data;
+        const updateDoc = {
+          $set: {
+            routine,
+          },
+        };
+        const result = await routineCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
     });
 
     app.get("/notice", async (req, res) => {
