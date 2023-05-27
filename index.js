@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const moment = require("moment");
 require("dotenv").config();
 const port = process.env.PORT || 5000; //!Admin: disha@gmail.com / password: diasha11
 
@@ -9,7 +10,7 @@ const port = process.env.PORT || 5000; //!Admin: disha@gmail.com / password: dia
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.l9sv8bf.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER2}:${process.env.DB_PASS2}@cluster0.l9sv8bf.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -32,6 +33,18 @@ async function run() {
     const studentsMsgCollection = client
       .db("schoolProject")
       .collection("studentsMsgCollection");
+    const resultsCollection = client
+      .db("schoolProject")
+      .collection("resultsCollection");
+    const noticeCollection = client
+      .db("schoolProject")
+      .collection("noticeCollection");
+    const routineCollection = client
+      .db("schoolProject")
+      .collection("routineCollection");
+    const calenderCollection = client
+      .db("schoolProject")
+      .collection("calenderCollection"); 
 
     const verifyAdmin = async (req, res, next) => {
       const email = req.query.email;
@@ -43,6 +56,85 @@ async function run() {
 
       next();
     };
+
+    app.post("/calender", verifyAdmin, async (req, res) => {
+      try {
+        const calender = req.body;
+        const result = await calenderCollection.insertOne(calender);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.get("/calender", async (req, res) => {
+      try {
+        const query = {
+          start: { $gte: moment(req.query.start).toDate() },
+          end: { $lte: moment(req.query.end).toDate() }, 
+        };
+        const events = await calenderCollection.find(query);
+        res.send(events);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.get("/routine", async (req, res) => {
+      const routine = await routineCollection.find({}).toArray();
+      res.send(routine);
+    });
+
+    app.get("/notice", async (req, res) => {
+      try {
+        const result = await noticeCollection.find({}).toArray();
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.delete("/notice/:id", verifyAdmin, async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const result = await noticeCollection.deleteOne(filter);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.post("/notice", verifyAdmin, async (req, res) => {
+      try {
+        const notice = req.body;
+        const result = await noticeCollection.insertOne(notice);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    app.post("/results", verifyAdmin, async (req, res) => {
+      try {
+        const stResult = req.body;
+        const result = await resultsCollection.insertOne(stResult);
+        res.send(result);
+      } catch (error) {
+        res.send(res.message);
+      }
+    });
+
+    app.get("/results/:roll", async (req, res) => {
+      try {
+        const roll = req.params.roll;
+        const filter = { roll: roll };
+        const result = await resultsCollection.findOne(filter);
+        res.send(result);
+      } catch (error) {
+        res.send(res.message);
+      }
+    });
 
     app.get("/teachers", async (req, res) => {
       try {
@@ -88,7 +180,6 @@ async function run() {
     app.post("/admission", async (req, res) => {
       try {
         const admission = req.body;
-        console.log(admission);
         const result = await admissionCollection.insertOne(admission);
         res.send(result);
       } catch (error) {
