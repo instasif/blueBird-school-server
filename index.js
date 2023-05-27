@@ -56,6 +56,16 @@ async function run() {
 
       next();
     };
+    //! calender code starts
+    app.get("/calender", async (req, res) => {
+      try {
+        const query = {};
+        const events = await calenderCollection.find(query).toArray();
+        res.send(events);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
 
     app.post("/calender", verifyAdmin, async (req, res) => {
       try {
@@ -66,19 +76,7 @@ async function run() {
         res.send(error.message);
       }
     });
-
-    app.get("/calender", async (req, res) => {
-      try {
-        const query = {
-          start: { $gte: moment(req.query.start).toDate() },
-          end: { $lte: moment(req.query.end).toDate() },
-        };
-        const events = await calenderCollection.find(query);
-        res.send(events);
-      } catch (error) {
-        res.send(error.message);
-      }
-    });
+    //! calender code ends
 
     app.get("/routine", async (req, res) => {
       const routine = await routineCollection.find({}).toArray();
