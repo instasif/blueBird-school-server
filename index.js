@@ -56,7 +56,7 @@ async function run() {
 
       next();
     };
-    //! calender code starts
+    
     app.get("/calender", async (req, res) => {
       try {
         const query = {};
@@ -69,14 +69,13 @@ async function run() {
 
     app.post("/calender", verifyAdmin, async (req, res) => {
       try {
-        const calender = req.body;
-        const result = await calenderCollection.insertOne(calender);
+        const data = req.body;
+        const result = await calenderCollection.insertOne(data);
         res.send(result);
       } catch (error) {
         res.send(error.message);
       }
     });
-    //! calender code ends
 
     app.get("/routine", async (req, res) => {
       const routine = await routineCollection.find({}).toArray();
