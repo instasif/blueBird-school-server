@@ -102,7 +102,6 @@ async function run() {
         const filter = { _id: new ObjectId(id) };
         const options = { upsert: true };
         const data = req.body;
-        console.log(data);
         const { routine } = data;
         const updateDoc = {
           $set: {
